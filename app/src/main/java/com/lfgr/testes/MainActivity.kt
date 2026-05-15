@@ -44,14 +44,14 @@ fun HomePage(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Bem-vindo à Home Page!", fontSize = 24.sp) // [cite: 137]
+        Text(text = "Bem-vindo à Home Page!", fontSize = 24.sp)
 
         Spacer(modifier = Modifier.size(24.dp))
 
         Button(onClick = {
-            activity.finish() // [cite: 149] - Fecha a Home e volta para o Login
+            activity.finish()
         }) {
-            Text("Sair") // [cite: 137]
+            Text("Sair")
         }
     }
 }
