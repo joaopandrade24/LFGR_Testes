@@ -25,11 +25,9 @@ fun BottomNavBar(navController: NavHostController, items: List<BottomNavItem>) {
                 icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
                 label = { Text(text = item.title, fontSize = 12.sp) },
                 alwaysShowLabel = true,
-                // Jeito novo e seguro de verificar a rota atual no Compose
                 selected = currentDestination?.hasRoute(item.route::class) == true,
                 onClick = {
                     navController.navigate(item.route) {
-                        // Faz o botão "voltar" do celular limpar a pilha até a Home
                         popUpTo(Route.Home) {
                             saveState = true
                         }
