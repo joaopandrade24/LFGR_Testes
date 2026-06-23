@@ -2,6 +2,7 @@ package com.lfgr.testes.model
 
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.maps.model.LatLng
 
 class MainViewModel : ViewModel() {
     private val _cities = generateCities().toMutableStateList()
@@ -18,5 +19,8 @@ class MainViewModel : ViewModel() {
 
     private fun generateCities() = List(20) { i ->
         City(name = "Cidade $i", weather = "Carregando clima...")
+    }
+    fun add(name: String, location: LatLng? = null) {
+        _cities.add(City(name = name, location = location))
     }
 }

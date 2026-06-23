@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,12 +17,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.lfgr.testes.ui.nav.BottomNavBar
 import com.lfgr.testes.ui.nav.BottomNavItem
 import com.lfgr.testes.ui.nav.MainNavHost
 import com.lfgr.testes.ui.theme.LFGR_testesTheme
 import com.lfgr.testes.ui.CityDialog
-import com.lfgr.testes.model.MainViewModel // Import atualizado!
+import com.lfgr.testes.model.MainViewModel
+import com.lfgr.testes.ui.nav.Route
 
 class MainActivity : ComponentActivity() {
 
@@ -34,6 +39,10 @@ class MainActivity : ComponentActivity() {
             LFGR_testesTheme {
                 var showDialog by remember { mutableStateOf(false) }
                 val navController = rememberNavController()
+
+                val currentRoute = navController.currentBackStackEntryAsState()
+                val showButton = currentRoute.value?.destination?.hasRoute(Route.List::class) == true
+                val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(), onResult = {})
 
                 val items = listOf(
                     BottomNavItem.HomeButton,
@@ -72,13 +81,15 @@ class MainActivity : ComponentActivity() {
                         BottomNavBar(navController = navController, items = items)
                     },
                     floatingActionButton = {
-                        FloatingActionButton(onClick = { showDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                        if (showButton) {
+                            FloatingActionButton(onClick = { showDialog = true }) {
+                                Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                            }
                         }
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        // Agora o MainNavHost está recebendo o viewModel corretamente
+                        launcher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
                         MainNavHost(navController = navController, viewModel = viewModel)
                     }
                 }
