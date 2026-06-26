@@ -1,26 +1,67 @@
 package com.lfgr.testes.model
 
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.model.LatLng
+import com.lfgr.testes.db.fb.FBCity
+import com.lfgr.testes.db.fb.FBDatabase
+import com.lfgr.testes.db.fb.FBUser
+import com.lfgr.testes.db.fb.toFBCity
 
-class MainViewModel : ViewModel() {
-    private val _cities = generateCities().toMutableStateList()
+class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listener {
+    private val _cities = mutableStateListOf<City>()
     val cities: List<City>
         get() = _cities.toList()
 
+    private val _user = mutableStateOf<User?>(null)
+    val user: User?
+        get() = _user.value
+
+    init {
+        db.setListener(this)
+    }
+
     fun remove(city: City) {
-        _cities.remove(city)
+        db.remove(city.toFBCity())
     }
 
-    fun add(name: String) {
-        _cities.add(City(name = name, weather = "Carregando clima..."))
-    }
-
-    private fun generateCities() = List(20) { i ->
-        City(name = "Cidade $i", weather = "Carregando clima...")
-    }
     fun add(name: String, location: LatLng? = null) {
-        _cities.add(City(name = name, location = location))
+        db.add(City(name = name, location = location).toFBCity())
+    }
+
+    override fun onUserLoaded(user: FBUser) {
+        _user.value = user.toUser()
+    }
+
+    override fun onUserSignOut() {
+        _cities.clear()
+        _user.value = null
+    }
+
+    override fun onCityAdded(city: FBCity) {
+        _cities.add(city.toCity())
+    }
+
+    override fun onCityUpdated(city: FBCity) {
+        val index = _cities.indexOfFirst { it.name == city.name }
+        if (index != -1) {
+            _cities[index] = city.toCity()
+        }
+    }
+
+    override fun onCityRemoved(city: FBCity) {
+        _cities.removeIf { it.name == city.name }
+    }
+}
+
+class MainViewModelFactory(private val db: FBDatabase) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MainViewModel(db) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

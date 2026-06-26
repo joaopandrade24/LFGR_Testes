@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -16,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -25,13 +25,13 @@ import com.lfgr.testes.ui.nav.MainNavHost
 import com.lfgr.testes.ui.theme.LFGR_testesTheme
 import com.lfgr.testes.ui.CityDialog
 import com.lfgr.testes.model.MainViewModel
+import com.lfgr.testes.model.MainViewModelFactory
+import com.lfgr.testes.db.fb.FBDatabase
 import com.lfgr.testes.ui.nav.Route
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +39,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LFGR_testesTheme {
+                val fbDB = remember { FBDatabase() }
+                val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(fbDB))
+
                 var showDialog by remember { mutableStateOf(false) }
                 val navController = rememberNavController()
 
@@ -68,9 +71,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         TopAppBar(
-                            title = { Text("Bem-vindo/a!") },
+                            title = {
+                                val name = viewModel.user?.name ?: "[carregando...]"
+                                Text("Bem-vindo/a! $name")
+                            },
                             actions = {
-                                IconButton(onClick = { finish() }) {
+                                IconButton(onClick = {
+                                    Firebase.auth.signOut()
+                                }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                         contentDescription = "Sair do App"

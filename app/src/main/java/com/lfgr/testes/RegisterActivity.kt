@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.lfgr.testes.ui.theme.LFGR_testesTheme
+import com.lfgr.testes.db.fb.FBDatabase
+import com.lfgr.testes.model.User
+import com.lfgr.testes.db.fb.toFBUser
 
 class RegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,8 +75,10 @@ fun RegisterPage(modifier: Modifier = Modifier) {
                     Firebase.auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(activity) { task ->
                             if (task.isSuccessful) {
+
+                                FBDatabase().register(User(name, email).toFBUser())
+
                                 Toast.makeText(activity, "Registro OK!", Toast.LENGTH_LONG).show()
-                                activity.finish()
                             } else {
                                 Toast.makeText(activity, "Registro FALHOU!", Toast.LENGTH_LONG).show()
                             }
