@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
@@ -14,15 +13,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.lfgr.testes.ui.theme.LFGR_testesTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-
-// eu odeio kotlin
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,15 +34,15 @@ class LoginActivity : ComponentActivity() {
         }
     }
 }
-@Preview(showBackground = true)
+
 @Composable
 fun LoginPage(modifier: Modifier = Modifier) {
-    // persistencia
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    val activity = LocalActivity.current as Activity
 
-    // coluna centralizada
+    val context = LocalContext.current
+    val activity = context as Activity
+
     Column(
         modifier = modifier.padding(24.dp).fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -81,28 +78,32 @@ fun LoginPage(modifier: Modifier = Modifier) {
         ) {
             Button(
                 onClick = {
-
-                    Toast.makeText(activity, "Login OK!", Toast.LENGTH_LONG).show()
-
-                    activity.startActivity(
-                        Intent(activity, MainActivity::class.java).setFlags(
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        )
-                    )
+                    Firebase.auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(activity) { task ->
+                            if (task.isSuccessful) {
+                                activity.startActivity(
+                                    Intent(activity, MainActivity::class.java).setFlags(
+                                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    )
+                                )
+                                Toast.makeText(activity, "Login OK!", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(activity, "Login FALHOU!", Toast.LENGTH_LONG).show()
+                            }
+                        }
                 },
-                // verifica se campo n ta vazio
                 enabled = email.isNotEmpty() && password.isNotEmpty()
             ) {
                 Text("Login")
             }
+
             Button(onClick = { email = ""; password = "" }) {
                 Text("Limpar")
             }
-        } // ROW
+        }
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        // botao tela registro
         Button(
             onClick = {
                 activity.startActivity(Intent(activity, RegisterActivity::class.java))
@@ -110,8 +111,5 @@ fun LoginPage(modifier: Modifier = Modifier) {
         ) {
             Text("Ainda não tem conta? Registre-se")
         }
-
-    } // C O L U N A
-
-} // função loginpage acaba aqui (cristo amado Kotlin tem muito parenteses e chave pqp)
-
+    }
+}

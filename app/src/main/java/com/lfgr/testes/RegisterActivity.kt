@@ -16,6 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.lfgr.testes.ui.theme.LFGR_testesTheme
 
 class RegisterActivity : ComponentActivity() {
@@ -34,7 +36,6 @@ class RegisterActivity : ComponentActivity() {
 
 @Composable
 fun RegisterPage(modifier: Modifier = Modifier) {
-    // persistencia, campos de digitacao
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -53,7 +54,6 @@ fun RegisterPage(modifier: Modifier = Modifier) {
         Text(text = "Crie sua conta", fontSize = 24.sp)
         Spacer(modifier = Modifier.size(12.dp))
 
-        // campos de digitacao
         OutlinedTextField(value = name, label = { Text("Nome") }, onValueChange = { name = it }, modifier = fieldModifier)
         Spacer(modifier = Modifier.size(8.dp))
 
@@ -69,17 +69,26 @@ fun RegisterPage(modifier: Modifier = Modifier) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             Button(
                 onClick = {
-                    Toast.makeText(context, "Registro OK!", Toast.LENGTH_LONG).show()
-                    activity.finish()
+                    Firebase.auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(activity) { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(activity, "Registro OK!", Toast.LENGTH_LONG).show()
+                                activity.finish()
+                            } else {
+                                Toast.makeText(activity, "Registro FALHOU!", Toast.LENGTH_LONG).show()
+                            }
+                        }
                 },
-                // verifica se ta igual e n ta vazio
                 enabled = name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && password == repeatPassword
             ) {
-                Text("Registrar") // [cite: 161]
+                Text("Registrar")
             }
 
             Button(onClick = {
-                name = ""; email = ""; password = ""; repeatPassword = ""
+                name = ""
+                email = ""
+                password = ""
+                repeatPassword = ""
             }) {
                 Text("Limpar")
             }

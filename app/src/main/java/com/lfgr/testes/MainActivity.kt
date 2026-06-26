@@ -26,6 +26,8 @@ import com.lfgr.testes.ui.theme.LFGR_testesTheme
 import com.lfgr.testes.ui.CityDialog
 import com.lfgr.testes.model.MainViewModel
 import com.lfgr.testes.ui.nav.Route
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
 
